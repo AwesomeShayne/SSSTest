@@ -8,5 +8,9 @@ namespace SSSTest
 {
     class OneDimensionPacker
     {
+        public OneDimensionPacker(List<int> _Input, int _Max, string _Method)
+        {
+
+        }
     }
 }

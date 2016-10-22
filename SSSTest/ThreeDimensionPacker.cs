@@ -8,5 +8,9 @@ namespace SSSTest
 {
     class ThreeDimensionPacker
     {
+        public ThreeDimensionPacker(int[,,] _Input, int[,,] _Max, string _Method)
+        {
+
+        }
     }
 }
