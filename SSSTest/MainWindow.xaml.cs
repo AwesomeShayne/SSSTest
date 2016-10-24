@@ -50,6 +50,21 @@ namespace SSSTest
             SolutionMethodComboBox.Items.Add("LowHighBestFit");
             LoadInputFileButton.Click += LoadInputFileButton_Click;
             CalculateSolutionButton.Click += CalculateSolutionButton_Click;
+            NextButton.IsEnabled = false;
+            PreviousButton.IsEnabled = false;
+            NextButton.Click += NextButton_Click;
+            PreviousButton.Click += PreviousButton_Click;
+
+        }
+
+        private void PreviousButton_Click(object sender, RoutedEventArgs e)
+        {
+            StepSlider.Value -= 1;
+        }
+
+        private void NextButton_Click(object sender, RoutedEventArgs e)
+        {
+            StepSlider.Value += 1;
         }
 
         private void LoadInputFileButton_Click(object sender, RoutedEventArgs e)
@@ -141,6 +156,8 @@ namespace SSSTest
             StepSlider.Maximum = VisualizerImages.Count - 1;
             StepSlider.Minimum = 0;
             StepSlider.ValueChanged += StepSlider_ValueChanged;
+            PreviousButton.IsEnabled = true;
+            NextButton.IsEnabled = true;
         }
 
         private void StepSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

@@ -91,7 +91,10 @@ namespace SSSTest
                     _G = Rand.Next(0, 256);
                     _B = Rand.Next(0, 256);
                     Color _FillColor = Color.FromArgb(50, _R, _G, _B);
+                    Color _LineColor = Color.Black;
                     SolidBrush _FillBrush = new SolidBrush(_FillColor);
+                    Pen _LineBrush = new Pen(_LineColor, 1);
+                    g.DrawRectangles(_LineBrush, new RectangleF[] { _Rect });
                     g.FillRectangles(_FillBrush, new RectangleF[] { _Rect });
                 }
             }
