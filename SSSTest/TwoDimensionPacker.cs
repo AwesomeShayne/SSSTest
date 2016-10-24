@@ -181,14 +181,15 @@ namespace SSSTest
                 int _LeastSpace = X * Y;
                 int MinSpaceIndex = 0;
                 var _Shape = Shapes[_Index];
-                foreach (GridBin _CurrentBin in Bins)
+                for (int _Index1 = 0; _Index1 < Bins.Count; _Index1++)
                 {
+                    var _CurrentBin = Bins[_Index1];
                     var _CurrentSpace = _CurrentBin.AreaContents;
                     if (_LeastSpace > _CurrentSpace && _CurrentBin.CheckNow(_Shape))
                     {
                         _Placable = true;
                         _LeastSpace = _CurrentSpace;
-                        MinSpaceIndex = _CurrentBin.Number;
+                        MinSpaceIndex = _Index1;
                     }
                 }
                 if (_Placable)
@@ -222,13 +223,14 @@ namespace SSSTest
                 int _MostSpace = 0;
                 int _MostSpaceIndex = 0;
                 var _Shape = Shapes[_Index];
-                foreach (GridBin _CurrentBin in Bins)
+                for(int _Index1 = 0; _Index1 < Bins.Count; _Index1++)
                 {
+                    var _CurrentBin = Bins[_Index1];
                     var _CurrentSpace = _CurrentBin.AreaContents;
                     if (_MostSpace < _CurrentSpace && _CurrentBin.CheckNow(_Shape))
                     {
                         _MostSpace = _CurrentSpace;
-                        _MostSpaceIndex = _CurrentBin.Number;
+                        _MostSpaceIndex = _Index1;
                     }
                 }
                 if (_MostSpace >= _Shape.Area)

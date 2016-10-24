@@ -20,6 +20,7 @@ namespace SSSTest
         {
             MaxX = _X;
             MaxY = _Y;
+            AreaContents = MaxX * MaxY;
             Bins.Add(new GridShape(MaxX, MaxY, 0, 0));
         }
 

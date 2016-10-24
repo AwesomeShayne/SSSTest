@@ -175,14 +175,15 @@ namespace SSSTest
                 int _LeastSpace = Max;
                 int MinSpaceIndex = 0;
                 var _Current = Input[_Index];
-                foreach (Bin _CurrentBin in Bins)
+                for(int _Index1 = 0; _Index1 < Bins.Count; _Index1++)
                 {
+                    var _CurrentBin = Bins[_Index1];
                     var _CurrentSpace = _CurrentBin.SpaceRemaining();
                     if (_LeastSpace > _CurrentSpace && _CurrentSpace >= _Current)
                     {
                         _Placable = true;
                         _LeastSpace = _CurrentSpace;
-                        MinSpaceIndex = _CurrentBin.Number;
+                        MinSpaceIndex = _Index1;
                     }
                 }
                 if (_Placable)
@@ -202,16 +203,18 @@ namespace SSSTest
         {
             for (int _Index = 0; _Index < Length; _Index++)
             {
+                
                 int MostSpace = 0;
                 int MaxSpaceIndex = 0;
                 var _Current = Input[_Index];
-                foreach (Bin _CurrentBin in Bins)
+                for (int _Index1 = 0; _Index1 < Bins.Count; _Index1++)
                 {
+                    var _CurrentBin = Bins[_Index1];
                     var _CurrentSpace = _CurrentBin.SpaceRemaining();
                     if (MostSpace < _CurrentSpace)
                     {
                         MostSpace = _CurrentSpace;
-                        MaxSpaceIndex = _CurrentBin.Number;
+                        MaxSpaceIndex = _Index1;
                     }
                 }
                 if (MostSpace >= _Current)
