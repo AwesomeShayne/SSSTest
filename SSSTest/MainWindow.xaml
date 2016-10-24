@@ -34,13 +34,58 @@
                 Grid.Row="1"
                 Grid.Column="7"
                 Grid.ColumnSpan="2"/>
-        <ComboBox Name="SolutionMethod"
+        <ComboBox Name="SolutionMethodComboBox"
                   Grid.Row="1"
                   Grid.Column="4"
                   Grid.ColumnSpan="2"/>
-        <TextBlock Name="StepBox"
-                   Grid.Row="0"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="5"/>
+        <ScrollViewer Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3">
+            <TextBlock Name="StepBox"/>
+        </ScrollViewer>
+        
+            <Grid
+                Grid.Row="0"
+                Grid.Column="3"
+                Grid.ColumnSpan="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="5"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <Image Name="VisualizedImage"/>
+            </ScrollViewer>
+            <Slider Name="StepSlider"
+                        Margin="5"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="5"
+                        IsSnapToTickEnabled="True"
+                        TickFrequency="1"/>
+
+                <Button Name="PreviousButton"
+                        Content="&lt;"
+                        Width="25"
+                        Grid.Row="2"
+                        Grid.Column="1"/>
+                <Button Name="NextButton"
+                        Content=">"
+                        Width="25"
+                        Grid.Row="2"
+                        Grid.Column="3"/>
+            </Grid>
+        
     </Grid>
 </Window>

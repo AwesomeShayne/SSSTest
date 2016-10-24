@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -55,6 +56,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Bin.cs" />
+    <Compile Include="GridBin.cs" />
+    <Compile Include="GridShape.cs" />
+    <Compile Include="SpaceGrid.cs" />
+    <Compile Include="SpaceShape.cs" />
     <Compile Include="ThreeDimensionPacker.cs" />
     <Compile Include="TwoDimensionPacker.cs" />
     <Page Include="MainWindow.xaml">
