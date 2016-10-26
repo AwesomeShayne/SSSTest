@@ -264,7 +264,7 @@ namespace SSSTest
                 XBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
             }
 
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y) // Case 2
+            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y) // Case 2 TODO
             {
                 var remWidth = _Box.Width - (_Bin.X - _Box.X);
                 var highHeight = _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y));
@@ -297,7 +297,7 @@ namespace SSSTest
                 XBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
             }
 
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X) // Case 3
+            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X) // Case 3 TODO
             {
                 var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
                 var rightWidth = _Bin.Width - (_Box.Width + (_Box.X - _Bin.X));
