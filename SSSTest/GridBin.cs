@@ -12,20 +12,21 @@ namespace SSSTest
         int MaxX;
         int MaxY;
         public int AreaContents;
+        private int BinsPlaced = 0;
         static Random Rand = new Random();
         public List<GridShape> Shapes = new List<GridShape>();
         public List<GridShape> YBins = new List<GridShape>();
-        public List<GridShape> NewYBins = new List<GridShape>();
         public List<GridShape> XBins = new List<GridShape>();
-        public List<GridShape> NewXBins = new List<GridShape>();
+        public List<GridShape> YDrawBins = new List<GridShape>();
+        public List<GridShape> XDrawBins = new List<GridShape>();
 
         public GridBin(int _Number, int _X, int _Y) : base(_Number)
         {
             MaxX = _X;
             MaxY = _Y;
             AreaContents = MaxX * MaxY;
-            YBins.Add(new GridShape(MaxX, MaxY, 0, 0));
-            XBins.Add(new GridShape(MaxX, MaxY, 0, 0));
+            YBins.Add(new GridShape(0, 0, MaxX, MaxY));
+            XBins.Add(new GridShape(0, 0, MaxX, MaxY));
         }
 
         public bool CheckNow(GridShape NewContent)
@@ -51,51 +52,62 @@ namespace SSSTest
 
         public void AddContent(GridShape NewContent)
         {
-            for (int _Index = 0; _Index < YBins.Count; _Index++)
-            {
-                var _Bin = YBins[_Index];
-                if (_Bin.Width >= NewContent.Width && _Bin.Height >= NewContent.Height)
-                {
-                    NewContent.AssignOrigin(_Bin.X, _Bin.Y);
-                    Shapes.Add(NewContent);
-                    MagicSplit(NewContent);
-                    AreaContents -= NewContent.Area;
-                    break;
-                }
-                else if (_Bin.Width >= NewContent.Height && _Bin.Height >= NewContent.Width)
-                {
-                    NewContent = new GridShape(NewContent.Height, NewContent.Width);
-                    NewContent.AssignOrigin(_Bin.X, _Bin.Y);
-                    Shapes.Add(NewContent);
-                    MagicSplit(NewContent);
-                    AreaContents -= NewContent.Area;
-                    break;
-                }
-            }
-
             for (int _Index = 0; _Index < XBins.Count; _Index++)
             {
                 var _Bin = XBins[_Index];
                 if (_Bin.Width >= NewContent.Width && _Bin.Height >= NewContent.Height)
                 {
+                    BinsPlaced++;
                     NewContent.AssignOrigin(_Bin.X, _Bin.Y);
+                    NewContent.SetNumber(BinsPlaced);
                     Shapes.Add(NewContent);
                     NewContent.AssignOrigin(_Bin.X, _Bin.Y);
                     MagicSplit(NewContent);
                     AreaContents -= NewContent.Area;
-                    break;
+                    return;
                 }
                 else if (_Bin.Width >= NewContent.Height && _Bin.Height >= NewContent.Width)
                 {
+                    BinsPlaced++;
                     NewContent = new GridShape(NewContent.Height, NewContent.Width);
+                    NewContent.SetNumber(BinsPlaced);
                     NewContent.AssignOrigin(_Bin.X, _Bin.Y);
                     Shapes.Add(NewContent);
                     NewContent.AssignOrigin(_Bin.X, _Bin.Y);
                     MagicSplit(NewContent);
                     AreaContents -= NewContent.Area;
-                    break;
+                    return;
                 }
             }
+            for (int _Index = 0; _Index < YBins.Count; _Index++)
+            {
+                var _Bin = YBins[_Index];
+                if (_Bin.Width >= NewContent.Width && _Bin.Height >= NewContent.Height)
+                {
+                    BinsPlaced++;
+                    NewContent.AssignOrigin(_Bin.X, _Bin.Y);
+                    NewContent.SetNumber(BinsPlaced);
+                    Shapes.Add(NewContent);
+                    MagicSplit(NewContent);
+                    AreaContents -= NewContent.Area;
+                    return;
+                }
+                else if (_Bin.Width >= NewContent.Height && _Bin.Height >= NewContent.Width)
+                {
+                    BinsPlaced++;
+                    NewContent = new GridShape(NewContent.Height, NewContent.Width);
+                    NewContent.SetNumber(BinsPlaced);
+                    NewContent.AssignOrigin(_Bin.X, _Bin.Y);
+                    Shapes.Add(NewContent);
+                    MagicSplit(NewContent);
+                    AreaContents -= NewContent.Area;
+                    return;
+                }
+            }
+            YBins.Sort((Bin1, Bin2) => Bin1.X.CompareTo(Bin2.X));
+            YBins.Sort((Bin1, Bin2) => Bin1.Y.CompareTo(Bin2.Y));
+            XBins.Sort((Bin1, Bin2) => Bin1.X.CompareTo(Bin2.X));
+            XBins.Sort((Bin1, Bin2) => Bin1.Y.CompareTo(Bin2.Y));
         }
 
         /*private void Split(GridShape _CurrentBin, GridShape _CurrentObject, int _Index)
@@ -115,220 +127,259 @@ namespace SSSTest
 
         private void MagicSplit(GridShape _CurrentObject)
         {
-            var remYBins = new List<GridShape>();
-            var remXBins = new List<GridShape>();
-            foreach (var _Bin in YBins)
+            foreach (var _Bin in XBins.ToArray())
             {
                 if (_Bin.CollidesWith(_CurrentObject))
                 {
-                    SplitY(_Bin, _CurrentObject);
-                    remYBins.Add(_Bin);
+                    XSplit(_Bin, _CurrentObject);
+                    XDrawBins.Add(_Bin);
+                    XBins.Remove(_Bin);
                 }
             }
-            foreach (var _Bin in remYBins)
-            {
-                YBins.Remove(_Bin);
-            }
-            foreach (var _Bin in NewYBins)
-            {
-                YBins.Add(_Bin);
-            }
-            foreach (var _Bin in XBins)
+            foreach (var _Bin in YBins.ToArray())
             {
                 if (_Bin.CollidesWith(_CurrentObject))
                 {
-                    SplitX(_Bin, _CurrentObject);
-                    remXBins.Add(_Bin);
+                    YSplit(_Bin, _CurrentObject);
+                    YDrawBins.Add(_Bin);
+                    YBins.Remove(_Bin);
                 }
             }
-            foreach (var _Bin in remXBins)
-            {
-                XBins.Remove(_Bin);
-            }
-            foreach (var _Bin in NewXBins)
-            {
-                XBins.Add(_Bin);
-            }
-            NewYBins = new List<GridShape>();
-            NewXBins = new List<GridShape>();
-        }
-
-        private void SplitY(GridShape _Bin, GridShape _Box)
-        {
             
-            if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y && _Box.Height >= _Bin.Y - _Box.Y) // Case 4
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
-            }
+        }
 
-            else if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y && _Box.Width >= _Bin.X - _Box.X) // Case 5
+        private void YSplit(GridShape _Bin, GridShape _Box)
+        {
+            if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y)
             {
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                NewYBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
+                if (_Box.Width >= (_Bin.Width + _Bin.X - _Box.X) && _Box.Height < (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 2 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    GridShape G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else if (_Box.Width < (_Bin.Width + (_Bin.X - _Box.X)) && _Box.Height >= (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 3 
+                {  
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else // (_Box.Width < (_Bin.Width + (_Bin.X - _Box.X)) && _Box.Height < (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 1 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, RemWidth, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                }
             }
-
-            else if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y) // Case 1
+            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y)
             {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                NewYBins.Add(new GridShape(remWidth, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
+                if (_Box.Height >= _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width >= _Bin.Width - (_Bin.X - _Box.X)) // Case 7 
+                {
+                    var RemHeight = _Bin.Height - (_Box.Y - _Bin.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else if (_Box.Height < _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width >= _Bin.Width - (_Bin.X - _Box.X)) // Case 5 
+                {
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Box.Y - _Bin.Y);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Box.Y + _Box.Height, _Bin.Width, _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y)));
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else if (_Box.Height >= _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width < _Bin.Width - (_Bin.X - _Box.X)) // Case 6 
+                {
+                    var RemHeight = _Bin.Height - (_Box.Y - _Bin.Y);
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, RemWidth, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else // (_Box.Height < _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width < _Bin.Width - (_Bin.X - _Box.X)) // Case 4 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, RemWidth, _Box.Y - _Bin.Y);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Box.Y + _Box.Height, RemWidth, _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y)));
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                }
             }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Height >= _Bin.Height - _Box.Y
-               && _Box.Width >= _Bin.Width + (_Bin.X - _Box.X)) // Case 8
+            else if (_Box.X > _Bin.X && _Box.Y <= _Bin.Y)
             {
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewYBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y));
-            }
+                if (_Box.Width >= _Bin.Width - (_Box.X - _Bin.X) && _Box.Height >= _Bin.Height - (_Bin.Y - _Box.Y)) // Case 11 
+                {
+                    var RemWidth = _Bin.Width - (_Box.X - _Bin.X);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else if (_Box.Width < _Bin.Width - (_Box.X - _Bin.X) && _Box.Height >= _Bin.Height - (_Bin.Y - _Box.Y)) // Case 9 
+                {
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Box.X - _Bin.X, _Bin.Height);
+                    G = GridShape.Create(_Box.X + _Box.Width, _Bin.Y, _Bin.Width - (_Box.Width + (_Box.X - _Bin.X)), _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else if (_Box.Width >= _Bin.Width - (_Box.X - _Bin.X) && _Box.Height < _Bin.Height - (_Bin.Y - _Box.Y)) // Case 10 
+                {
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    var RemWidth = _Bin.Width - (_Box.X - _Bin.X);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Box.X, _Bin.Y + RemHeight, RemWidth, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                }
+                else // if (_Box.Width < _Bin.Width - (_Box.X - _Bin.X) && _Box.Height < _Bin.Height - (_Bin.Y - _Box.Y)) // Case 8
+                {
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Box.X - _Bin.X, _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Box.X + _Box.Width, _Bin.Y, _Bin.Width - (_Box.Width + (_Box.X - _Bin.X)), _Bin.Height);
+                    if (G != null)
+                        YBins.Add(G);
+                    G = GridShape.Create(_Box.X, _Bin.Y + RemHeight, _Box.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        YBins.Add(G);
+                }
 
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Width >= _Bin.Width + (_Bin.X - _Box.X)) // Case 6
-            {
-                var lowHeight = _Box.Y - _Bin.Y;
-                var highHeight = _Bin.Height - (_Box.Height + lowHeight);
-                NewYBins.Add(new GridShape(_Bin.Width, lowHeight, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(_Bin.Width, highHeight, _Bin.X, _Box.Y + _Box.Height));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Height >= _Bin.Height - _Box.Y) // Case 7
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewYBins.Add(new GridShape(remWidth, _Bin.Height - remHeight, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y) // Case 2
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var highHeight = _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y));
-                var lowHeight = _Box.Y - _Bin.Y;
-                NewYBins.Add(new GridShape(remWidth, highHeight, _Bin.X, _Bin.Y + (_Box.Height + lowHeight)));
-                NewYBins.Add(new GridShape(remWidth, lowHeight, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Width >= _Bin.Width - _Box.X
-                && _Box.Height >= _Bin.Height + (_Bin.Y - _Box.Y)) // Case 11
-            {
-                var remWidth = _Box.Width - (_Box.X - _Bin.X);
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X, _Bin.Y));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Height >= _Bin.Height + (_Bin.Y - _Box.Y)) // Case 9
-            {
-                var leftWidth = _Box.X - _Bin.X;
-                var rightWidth = _Bin.Width - (_Box.Width + leftWidth);
-                NewYBins.Add(new GridShape(leftWidth, _Bin.Height, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(rightWidth, _Bin.Height, _Box.X + _Box.Width, _Bin.Y));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Width >= _Bin.Width - _Box.X) // Case 10
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewYBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(remWidth, _Bin.Height - remHeight, _Bin.X + (_Bin.Width - remWidth), _Bin.Y + remHeight));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X) // Case 3
-            {
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                var rightWidth = _Bin.Width - (_Box.Width + (_Box.X - _Bin.X));
-                var leftWidth = _Box.X - _Bin.X;
-                NewYBins.Add(new GridShape(rightWidth, _Bin.Height, _Bin.X, _Bin.Y));
-                NewYBins.Add(new GridShape(leftWidth, _Bin.Height, _Bin.X + (_Box.Width + (_Box.X - _Bin.X)), _Bin.Y));
-                NewYBins.Add(new GridShape(_Box.Width, _Bin.Height - remHeight, _Bin.X + leftWidth, _Bin.Y + remHeight));
             }
         }
-        private void SplitX(GridShape _Bin, GridShape _Box)
+
+        private void XSplit(GridShape _Bin, GridShape _Box)
         {
-            if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y && _Box.Height >= _Bin.Y - _Box.Y) // Case 4
+            if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y)
             {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
+                if (_Box.Width < (_Bin.Width + (_Bin.X - _Box.X)) && _Box.Height < (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 1 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Width >= (_Bin.Width + _Bin.X - _Box.X) && _Box.Height < (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 2 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    GridShape G = GridShape.Create(_Bin.X + RemWidth, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Width < (_Bin.Width + (_Bin.X - _Box.X)) && _Box.Height >= (_Bin.Height + (_Bin.Height + (_Bin.Y - _Box.Y)))) // Case 3 
+                {
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
             }
-
-            else if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y && _Box.Width >= _Bin.X - _Box.X) // Case 5
+            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y)
             {
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                NewXBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
+                if (_Box.Height < _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width < _Bin.Width - (_Bin.X - _Box.X)) // Case 4 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Box.Y - _Bin.Y);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X + RemWidth, _Box.Y, _Bin.Width - RemWidth, _Box.Height);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Box.Y + _Box.Height, _Bin.Width, _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y)));
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Height < _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width >= _Bin.Width - (_Bin.X - _Box.X)) // Case 5 
+                {
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Box.Y - _Bin.Y);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Box.Y + _Box.Height, _Bin.Width, _Bin.Height - (_Box.Height + (_Box.Y - _Bin.Y)));
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Height >= _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width < _Bin.Width - (_Bin.X - _Box.X)) // Case 6 
+                {
+                    var RemWidth = _Box.Width - (_Bin.X - _Box.X);
+                    var RemHeight = _Bin.Height - (_Box.Y - _Bin.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X + RemWidth, _Box.Y, _Bin.Width - RemWidth, RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Height >= _Bin.Height - (_Box.Y - _Bin.Y) && _Box.Width >= _Bin.Width - (_Bin.X - _Box.X)) // Case 7 
+                {
+                    var RemHeight = _Bin.Height - (_Box.Y - _Bin.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
             }
-
-            else if (_Box.X <= _Bin.X && _Box.Y <= _Bin.Y) // Case 1
+            else if (_Box.X > _Bin.X && _Box.Y <= _Bin.Y)
             {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                NewXBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, remHeight, _Bin.X + remWidth, _Bin.Y));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Width >= _Bin.Width + (_Bin.X - _Box.X)) // Case 6
-            {
-                var lowHeight = _Box.Y - _Bin.Y;
-                var highHeight = _Bin.Height - (_Box.Height + lowHeight);
-                NewXBins.Add(new GridShape(_Bin.Width, lowHeight, _Bin.X, _Bin.Y));
-                NewXBins.Add(new GridShape(_Bin.Width, highHeight, _Bin.X, _Box.Y + _Box.Height));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Height >= _Bin.Height - _Box.Y
-                && _Box.Width >= _Bin.Width + (_Bin.X - _Box.X)) // Case 8
-            {
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewXBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y && _Box.Height >= _Bin.Height - _Box.Y) // Case 7
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewXBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X + remWidth, _Bin.Y));
-            }
-
-            else if (_Box.X <= _Bin.X && _Box.Y > _Bin.Y) // Case 2 
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var lowHeight = _Box.Y - _Bin.Y;
-                var highHeight = _Bin.Height - (_Box.Height + lowHeight);
-
-                NewXBins.Add(new GridShape(_Bin.Width, highHeight, _Bin.X, _Bin.Y + (_Box.Height + lowHeight)));
-                NewXBins.Add(new GridShape(_Bin.Width, lowHeight, _Bin.X, _Bin.Y));
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, _Box.Height, _Bin.X + remWidth, _Bin.Y + lowHeight));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Height >= _Bin.Height + (_Bin.Y - _Box.Y)) // Case 9
-            {
-                var leftWidth = _Box.X - _Bin.X;
-                var rightWidth = _Bin.Width - (_Box.Width + leftWidth);
-                NewXBins.Add(new GridShape(leftWidth, _Bin.Height, _Bin.X, _Bin.Y));
-                NewXBins.Add(new GridShape(rightWidth, _Bin.Height, _Box.X + _Box.Width, _Bin.Y));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Width >= _Bin.Width - _Box.X
-                && _Box.Height >= _Bin.Height + (_Bin.Y - _Box.Y)) // Case 11
-            {
-                var remWidth = _Box.Width - (_Box.X - _Bin.X);
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, _Bin.Height, _Bin.X, _Bin.Y));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X && _Box.Width >= _Bin.Width - _Box.X) // Case 10
-            {
-                var remWidth = _Box.Width - (_Bin.X - _Box.X);
-                var remHeight = _Box.Height - (_Box.Y - _Bin.Y);
-                NewXBins.Add(new GridShape(_Bin.Width - remWidth, remHeight, _Bin.X, _Bin.Y));
-                NewXBins.Add(new GridShape(_Bin.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
-            }
-
-            else if (_Box.Y <= _Bin.Y && _Box.X > _Bin.X) // Case 3 
-            {
-                var remHeight = _Box.Height - (_Bin.Y - _Box.Y);
-                var rightWidth = _Bin.Width - (_Box.Width + (_Box.X - _Bin.X));
-                var leftWidth = _Box.X - _Bin.X;
-                NewXBins.Add(new GridShape(leftWidth, remHeight, _Bin.X, _Bin.Y));
-                NewXBins.Add(new GridShape(rightWidth, remHeight, _Bin.X + (_Box.Width + leftWidth), _Bin.Y));
-                XBins.Add(new GridShape(_Box.Width, _Bin.Height - remHeight, _Bin.X, _Bin.Y + remHeight));
+                if (_Box.Width < _Bin.Width - (_Box.X - _Bin.X) && _Box.Height < _Bin.Height - (_Bin.Y - _Box.Y)) // Case 8
+                {
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Box.X - _Bin.X, RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Box.X + _Box.Width, _Bin.Y, _Bin.Width - (_Box.Width + (_Box.X - _Bin.X)), RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Width < _Bin.Width - (_Box.X - _Bin.X) && _Box.Height >= _Bin.Height - (_Bin.Y - _Box.Y)) // Case 9 
+                {
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Box.X - _Bin.X, _Bin.Height);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Box.X + _Box.Width, _Bin.Y, _Bin.Width - (_Box.Width + (_Box.X - _Bin.X)), _Bin.Height);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Width >= _Bin.Width - (_Box.X - _Bin.X) && _Box.Height < _Bin.Height - (_Bin.Y - _Box.Y)) // Case 10 
+                {
+                    var RemWidth = _Bin.Width - (_Box.X - _Bin.X);
+                    var RemHeight = _Box.Height - (_Bin.Y - _Box.Y);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width - RemWidth, RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                    G = GridShape.Create(_Bin.X, _Bin.Y + RemHeight, _Bin.Width, _Bin.Height - RemHeight);
+                    if (G != null)
+                        XBins.Add(G);
+                }
+                else if (_Box.Width >= _Bin.Width - (_Box.X - _Bin.X) && _Box.Height >= _Bin.Height - (_Bin.Y - _Box.Y)) // Case 11 
+                {
+                    var RemWidth = _Bin.Width - (_Box.X - _Bin.X);
+                    GridShape G = GridShape.Create(_Bin.X, _Bin.Y, _Bin.Width - RemWidth, _Bin.Height);
+                    if (G != null)
+                        XBins.Add(G);
+                }
             }
         }
 
@@ -343,6 +394,7 @@ namespace SSSTest
                 foreach (GridShape _Shape in Shapes)
                 {
                     var _Rect = new Rectangle(_Shape.X * 5, _Shape.Y * 5, _Shape.Width * 5, _Shape.Height * 5);
+                    
                     _R = Rand.Next(0, 256);
                     _G = Rand.Next(0, 256);
                     _B = Rand.Next(0, 256);
@@ -350,8 +402,19 @@ namespace SSSTest
                     Color _LineColor = Color.Black;
                     SolidBrush _FillBrush = new SolidBrush(_FillColor);
                     Pen _LineBrush = new Pen(_LineColor, 1);
-                    g.DrawRectangles(_LineBrush, new RectangleF[] { _Rect });
-                    g.FillRectangles(_FillBrush, new RectangleF[] { _Rect });
+                    g.DrawRectangle(_LineBrush, _Rect);
+                    g.DrawString(_Shape.Number.ToString(), new Font("Tahoma", 8), Brushes.Black, _Rect);
+                    g.FillRectangle(_FillBrush,_Rect );
+                }
+                foreach (GridShape _Bin in XDrawBins)
+                {
+                    var _Rect = new Rectangle(_Bin.X * 5, _Bin.Y * 5, _Bin.Width * 5, _Bin.Height * 5);
+                    g.DrawRectangle(Pens.Red, _Rect);
+                }
+                foreach (GridShape _Bin in YDrawBins)
+                {
+                    var _Rect = new Rectangle(_Bin.X * 5, _Bin.Y * 5, _Bin.Width * 5, _Bin.Height * 5);
+                    g.DrawRectangle(Pens.Blue, _Rect);
                 }
             }
             return Output;
